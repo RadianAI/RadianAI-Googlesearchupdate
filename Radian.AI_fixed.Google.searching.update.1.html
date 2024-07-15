@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+
+        #experimental {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ff4757;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        #assistant {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+        }
+
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #333333;
+        }
+
+        #modeSwitch, #commandsButton {
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        #modeSwitch:hover, #commandsButton:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        #output {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            height: 200px;
+            overflow-y: auto;
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            color: #333;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        #inputField, #nameField {
+            width: calc(100% - 40px);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #inputField:focus, #nameField:focus {
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+            border-color: #007bff;
+        }
+
+        #greeting {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            color: #00ffcc; /* Initial color */
+            animation: neonEffect 1.5s infinite alternate;
+        }
+
+        @keyframes neonEffect {
+            0% { text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc; }
+            100% { text-shadow: 0 0 10px #ff0066, 0 0 20px #ff0066; }
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .dark-mode #assistant {
+            background: #1e1e1e;
+            color: white;
+        }
+
+        .dark-mode #header h1 {
+            color: #ffffff;
+        }
+
+        .dark-mode #output {
+            background: #2c2c2c;
+            border: 1px solid #444;
+            color: #ffffff;
+        }
+
+        .dark-mode #inputField, .dark-mode #nameField {
+            background: #2c2c2c;
+            color: white;
+            border: 1px solid #444;
+        }
+
+        .dark-mode #modeSwitch, .dark-mode #commandsButton {
+            background: #444;
+        }
+
+        .dark-mode #modeSwitch:hover, .dark-mode #commandsButton:hover {
+            background: #666;
+        }
+
+        .dark-mode #experimental {
+            background: #ff6b81;
+        }
+
+        .commands-list {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .commands-list.active {
+            display: flex;
+        }
+
+        .commands-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .commands-list ul li {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+        }
+
+        #typing {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .hexagon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff0066, #00ffcc, #ffcc00);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            animation: spinBounce 2s infinite;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes spinBounce {
+            0% { transform: rotate(0) translateY(0); }
+            25% { transform: rotate(90deg) translateY(-10px); }
+            50% { transform: rotate(180deg) translateY(0); }
+            75% { transform: rotate(270deg) translateY(-10px); }
+            100% { transform: rotate(360deg) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="experimental">Experimental</div>
+    <div id="assistant">
+        <div id="header">
+            <h1>Radian AI</h1>
+            <button id="modeSwitch" onclick="toggleMode()">Dark Mode</button>
+        </div>
+        <div id="greeting"><span>Hello </span></div>
+        <input type="text" id="nameField" placeholder="Enter your name..." onkeypress="checkNameEnter(event)">
+        <input type="text" id="inputField" placeholder="Type your message here..." onkeypress="checkEnter(event)" style="display: none;">
+        <div id="output"></div>
+        <button id="commandsButton" onclick="toggleCommands()">View Available Commands</button>
+        <div class="commands-list" id="commandsList">
+            <span class="close-button" onclick="toggleCommands()">×</span>
+            <h2>Available Commands:</h2>
+            <ul>
+                <li>Hey</li>
+                <li>Hi</li>
+                <li>Hello</li>
+                <li>What's the weather</li>
+                <li>Weather</li>
+                <li>I'm feeling sad</li>
+                <li>I'm feeling happy</li>
+                <li>Tell me a joke</li>
+                <li>Thanks</li>
+                <li>Thank you</li>
+                <li>What's the time</li>
+                <li>How are you</li>
+                <!-- New command -->
+                <li>Do a search for (query)</li>
+                <!-- New command -->
+                <li>Tell me a story</li>
+            </ul>
+        </div>
+        <div id="typing">
+            <div class="hexagon"></div>
+        </div>
+    </div>
+
+    <script>
+        let userName = "";
+        let isDarkMode = false;
+
+        function getResponse(userInput) {
+            userInput = userInput.toLowerCase();
+            const responses = {
+                "hey": `Hello ${userName}! How can I assist you today?`,
+                "hi": `Hi there ${userName}! How can I help you?`,
+                "hello": `Hello ${userName}! How can I assist you today?`,
+                "what's the weather": `I'm not able to check the weather right now, ${userName}, but here's a link to check it yourself: <a href="https://www.weather.com/">Weather.com</a>.`,
+                "weather": `I'm not able to check the weather right now, ${userName}, but here's a link to check it yourself: <a href="https://www.weather.com/">Weather.com</a>.`,
+                "i'm feeling sad": `I'm sorry to hear that, ${userName}. Is there anything I can do to cheer you up?`,
+                "i'm feeling happy": `That's great to hear, ${userName}! Keep spreading the positivity! 😊`,
+                "tell me a joke": `Why don't scientists trust atoms? Because they make up everything! 😄`,
+                "thanks": `You're welcome, ${userName}!`,
+                "thank you": `You're welcome, ${userName}!`,
+                "what's the time": getCurrentTime(),
+                "how are you": `I'm just a program, but thanks for asking, ${userName}!`,
+                // New command
+                "do a search for": `I'm searching for "${userInput.slice(14)}" for you.`,
+                // New command
+                "tell me a story": generateStory(),
+            };
+
+            // Check for the specific command to perform a web search
+            if (userInput.startsWith("do a search for")) {
+                const query = userInput.slice(15); // Extract the search query
+                performWebSearch(query);
+                return `I'm searching for "${query}" for you.`;
+            }
+
+            return responses[userInput] || `I'm not sure how to respond to that, ${userName}.`;
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            return `It's currently ${hours}:${minutes < 10 ? '0' + minutes : minutes}`;
+        }
+
+        function generateStory() {
+            // Generate a random story
+            const story = `
+                Once upon a time, in a kingdom far away, there was a brave knight named Sir Lancelot. 
+                He was known for his courage and wisdom throughout the land. One day, an evil sorcerer 
+                cast a dark spell over the kingdom, plunging it into eternal winter. Sir Lancelot 
+                embarked on a perilous journey to find the legendary Fire Ruby, the only artifact 
+                capable of breaking the curse. Along the way, he encountered mystical creatures 
+                and faced treacherous challenges. With unwavering determination, he finally reached 
+                the sorcerer's lair. After a fierce battle, Sir Lancelot shattered the Fire Ruby, 
+                restoring peace and warmth to the kingdom, and earning the eternal gratitude of its people.
+            `;
+            return story.trim().replace(/\s+/g, ' ');
+        }
+
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                const userInput = event.target.value;
+                event.target.value = '';
+                showTypingAnimation();
+
+                setTimeout(() => {
+                    const response = getResponse(userInput);
+                    document.getElementById("output").innerHTML = response;
+                    hideTypingAnimation();
+                }, 2000);
+            }
+        }
+
+        function checkNameEnter(event) {
+            if (event.key === "Enter") {
+                userName = event.target.value;
+                document.getElementById("greeting").innerHTML = `Hello, ${userName}!`;
+                event.target.style.display = "none";
+                document.getElementById("inputField").style.display = "block";
+                document.getElementById("inputField").focus();
+            }
+        }
+
+        function toggleMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle("dark-mode");
+            document.getElementById("modeSwitch").textContent = isDarkMode ? "Light Mode" : "Dark Mode";
+        }
+
+        function toggleCommands() {
+            document.getElementById("commandsList").classList.toggle("active");
+        }
+
+        function showTypingAnimation() {
+            document.getElementById("typing").style.display = "flex";
+        }
+
+        function hideTypingAnimation() {
+            document.getElementById("typing").style.display = "none";
+        }
+
+        function performWebSearch(query) {
+            const cx = "b33eeb168ecee46ac"; // Your Google Custom Search Engine ID
+            const apiKey = "AIzaSyC3rAUlaYb4mpo4vF5sr7KzeUSycD3SMmw";
+            const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${cx}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.items && data.items.length > 0) {
+                        const firstResult = data.items[0];
+                        window.open(firstResult.link, "_blank");
+                    } else {
+                        alert(`No results found for "${query}"`);
+                    }
+                })
+                .catch(error => console.error('Error fetching search results:', error));
+        }
+    </script>
+</body>
+</html><script>function generateStory() {
+    const beginnings = [
+        "Once upon a time, in a kingdom far away, there was a brave knight named Sir Lancelot.",
+        "In a distant land, where magic flowed like rivers and dragons roamed the skies, there lived a young wizard named Elara.",
+        "Long ago, before the age of men, the ancient forest whispered secrets to those who dared to listen."
+    ];
+
+    const middles = [
+        "He was known for his courage and wisdom throughout the land.",
+        "She possessed a rare gift: the ability to speak with animals and command the elements.",
+        "Legends spoke of a hidden treasure buried beneath the sands of time, waiting for a worthy soul to uncover its mysteries."
+    ];
+
+    const endings = [
+        "With unwavering determination, he finally reached his goal, forever changing the course of history.",
+        "Little did she know, the greatest adventure of her life was about to begin.",
+        "And so, the world was forever changed by the deeds of those who dared to dream."
+    ];
+
+    // Generate random indices for each part of the story
+    const randomBeginning = Math.floor(Math.random() * beginnings.length);
+    const randomMiddle = Math.floor(Math.random() * middles.length);
+    const randomEnding = Math.floor(Math.random() * endings.length);
+
+    // Construct the story
+    const story = `
+        ${beginnings[randomBeginning]}
+        ${middles[randomMiddle]}
+        ${endings[randomEnding]}
+    `;
+
+    return story.trim().replace(/\s+/g, ' ');
+}</script>
